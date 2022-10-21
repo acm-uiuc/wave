@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>ACM Wave</title>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    
+    <link rel="stylesheet" href="./style.css">
+    <link rel="icon" href="./favicon.ico" type="image/x-icon">
+
+    <script type="text/javascript" src="/js/handtrack.min.js"> </script>
+    <script type="text/javascript" src="/js/webcam-easy.min.js"></script>
+    <script type="text/javascript" src="/js/jquery-3.3.1.min.js"></script>  
+
+    <style>
+      html, body {
+        width: 100%;
+        height: 100%;
+        padding: 0;
+        margin: 0;
+      }
+    </style>
+
+  </head>
+  <body>
+    <video id="webcam" autoplay playsinline width="800" height="600"></video>
+    <div id="canvas" width="800" height="600"></div>
+
+  </body>
+<script type="text/javascript">
+// Asset Logic
+let assets = [];
+
+// Execution Logic
+function updateAssets(assets, predictions) {
+  $("#canvas").empty();
+  asserts = [];
+}
+
+function insertNewAssets(assets, predictions) {
+  for (let i = 0; i < predictions.length; i++) {
+    const prediction = predictions[i];
+    const bbox = prediction.bbox;
+
+    const x = bbox[0];
+    const y = bbox[1];
+    const w = bbox[2];
+    const h = bbox[3];
+
+    const emojiSize = w / 1.5;
+
+    let emoji = '';
+
+    if(prediction.label === 'face') {
+      emoji = '🎩';
+    }
+    else if(prediction.label === 'point') {
+      emoji = '🔥'; 
+    }
+
+    if(emoji === '') {
+      continue;
+    }
+
+    element = $("<div style='font-size: "+emojiSize+"px'>"+emoji+"</div>");
+    assets.push(element);
+    element.appendTo($("#canvas"));
+
+    element.css("width").replace("px","");
+    element.css("height").replace("px","");
+
+    // var firePositionTop = point[1] + point[3]/2;
+    // var firePositionLeft = point[0] + point[2]/2;
+
+    element.css({
+      top: y - w/3, 
+      left: x + w/6, 
+      position:'absolute'
+    });
+  }
+}
+
+// Hand track predictions support tracking of obj.label =
+// 'face' for face tracking
+// 'open', 'closed', 'pinch', 'point', 'pointtip', 'pinchtip' for hand tracking
+function update(assets, predictions) {
+  updateAssets(assets, predictions);
+  insertNewAssets(assets, predictions);
+}
+
+// Webcam Elements
+const webcamElement = document.getElementById('webcam');
+const canvasElement = document.getElementById('canvas');
+const webcam = new Webcam(webcamElement, 'user', canvasElement);
+
+// Handtrack model
+const modelParams = {
+  flipHorizontal: true, 
+  outputStride: 16,
+  imageScaleFactor: 1,
+  maxNumBoxes: 20,
+  iouThreshold: 0.2,
+  scoreThreshold: 0.6,
+  bboxLineWidth: "2",
+}
+
+// Execution
+window.onload = async function() {
+  // Load hand track model
+  const model = await handTrack.load(modelParams)
+
+  // Wait for the webcam to start
+  await webcam.start();
+
+  webcamElement.addEventListener('loadeddata', (event) => {
+    setInterval(async () => {
+      const predictions = await model.detect(webcamElement);
+      update(assets, predictions);
+    }, 20)
+  });
+}
+</script>
+</html>
