@@ -13,5 +13,5 @@ python3 -m http.server [PORT]
 Navigate to index.html. Then allow webcam permissions!
 
 ### Inspiration
-https://github.com/bensonruan/Hand-Track
-https://victordibia.com/handtrack.js/#/
+- https://github.com/bensonruan/Hand-Track
+- https://victordibia.com/handtrack.js/#/
